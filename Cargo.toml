@@ -1,0 +1,41 @@
+[package]
+name = "cheat-library-rs"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+cc = "1.0"
+bindgen = "0.69"  
+
+[dependencies]
+libc = "0.2"
+log = "0.4"
+android_logger = "0.15"
+
+
+capstone = "0.12.0"
+goblin = "0.8"
+scroll = "0.12"
+scroll_derive = "0.12"
+thiserror = "1.0"
+region = "3.0"
+jni = "0.21"
+rand = "0.8"
+md5 = "0.7"
+lazy_static = "1.5.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[target.aarch64-linux-android]
+linker = "aarch64-linux-android-clang"
+
+[target.armv7-linux-androideabi]
+linker = "armv7a-linux-androideabi-clang"

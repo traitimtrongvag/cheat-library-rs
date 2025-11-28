@@ -1,0 +1,10 @@
+[build]
+target = "aarch64-linux-android"
+
+[target.aarch64-linux-android]
+linker = "aarch64-linux-android-clang"
+ar = "aarch64-linux-android-ar"
+rustflags = [
+    "-Clink-arg=-Wl,--exclude-libs,libunwind.a",
+    "-Clink-arg=-Wl,--exclude-libs,libgcc.a",
+]
