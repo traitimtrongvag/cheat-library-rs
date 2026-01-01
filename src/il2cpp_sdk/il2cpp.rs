@@ -4,7 +4,6 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::sync::Mutex;
 use libc::dlsym;
-use log::{error, info};
 
 static CACHE_FIELDS: Mutex<Option<HashMap<String, usize>>> = Mutex::new(None);
 static CACHE_METHODS: Mutex<Option<HashMap<String, *mut std::ffi::c_void>>> = Mutex::new(None);
@@ -31,16 +30,17 @@ static mut IL2CPP_CLASS_GET_NAME: Option<unsafe extern "C" fn(*mut std::ffi::c_v
 static mut IL2CPP_CLASS_GET_NESTED_TYPES: Option<unsafe extern "C" fn(*mut std::ffi::c_void, *mut *mut std::ffi::c_void) -> *mut std::ffi::c_void> = None;
 static mut IL2CPP_OBJECT_NEW: Option<unsafe extern "C" fn(*mut std::ffi::c_void) -> *mut std::ffi::c_void> = None;
 
+unsafe impl Send for *mut std::ffi::c_void {}
+unsafe impl Sync for *mut std::ffi::c_void {}
+
 fn get_export_function(lib: &str, name: &str) -> Option<*mut std::ffi::c_void> {
     unsafe {
         let lib_cstr = CString::new(lib).ok()?;
         let name_cstr = CString::new(name).ok()?;
-        
         let handle = libc::dlopen(lib_cstr.as_ptr() as *const i8, libc::RTLD_NOW);
         if handle.is_null() {
             return None;
         }
-
         let func = dlsym(handle, name_cstr.as_ptr() as *const i8);
         if func.is_null() {
             None
@@ -55,7 +55,6 @@ pub fn il2cpp_base() -> usize {
         if IL2CPP_LIB_BASE != 0 {
             return IL2CPP_LIB_BASE;
         }
-
         if let Ok(file) = File::open("/proc/self/maps") {
             let reader = BufReader::new(file);
             for line in reader.lines().flatten() {
@@ -119,7 +118,6 @@ pub fn attach(libname: &str) -> Result<(), i32> {
         if IL2CPP_DOMAIN_GET.is_none() || IL2CPP_CLASS_FROM_NAME.is_none() {
             return Err(-1);
         }
-
         Ok(())
     }
 }
@@ -132,7 +130,7 @@ pub fn get_image(image_name: &str) -> Option<*mut std::ffi::c_void> {
         let get_name = IL2CPP_IMAGE_GET_NAME?;
 
         let domain = domain_get();
-        = let _size = = 0usize;
+        let mut size = 0usize;
         let assemblies = get_assemblies(domain, &mut size);
 
         for i in 0..size {
@@ -152,7 +150,6 @@ pub fn get_image(image_name: &str) -> Option<*mut std::ffi::c_void> {
 
 pub fn get_class(image_name: &str, namespace: &str, class_name: &str) -> Option<*mut std::ffi::c_void> {
     let sig = format!("{}{}{}", image_name, namespace, class_name);
-    
     if let Some(cache) = CACHE_CLASSES.lock().unwrap().as_ref() {
         if let Some(&klass) = cache.get(&sig) {
             return Some(klass);
@@ -164,25 +161,20 @@ pub fn get_class(image_name: &str, namespace: &str, class_name: &str) -> Option<
         let class_from_name = IL2CPP_CLASS_FROM_NAME?;
 
         let parts: Vec<&str> = class_name.split('.').collect();
-        
         let namespace_cstr = CString::new(namespace).ok()?;
         let class_cstr = CString::new(parts[0]).ok()?;
-        
-        = let _klass = = class_from_name(img, namespace_cstr.as_ptr() as *const i8, class_cstr.as_ptr() as *const i8);
+        let mut klass = class_from_name(img, namespace_cstr.as_ptr() as *const i8, class_cstr.as_ptr() as *const i8);
 
         if parts.len() > 1 {
             let get_nested = IL2CPP_CLASS_GET_NESTED_TYPES?;
             let get_name = IL2CPP_CLASS_GET_NAME?;
-            
-            = let _iter = = std::ptr::null_mut();
+            let mut iter = std::ptr::null_mut();
             let target_name = CString::new(parts[1]).ok()?;
-            
             loop {
                 let nested = get_nested(klass, &mut iter);
                 if nested.is_null() {
                     break;
                 }
-                
                 let name_ptr = get_name(nested);
                 if !name_ptr.is_null() {
                     let name = CStr::from_ptr(name_ptr as *const i8);
@@ -207,7 +199,6 @@ pub fn get_class(image_name: &str, namespace: &str, class_name: &str) -> Option<
 
 pub fn get_field_offset(image_name: &str, namespace: &str, class_name: &str, field_name: &str) -> Option<usize> {
     let sig = format!("{}{}{}{}", image_name, namespace, class_name, field_name);
-    
     if let Some(cache) = CACHE_FIELDS.lock().unwrap().as_ref() {
         if let Some(&offset) = cache.get(&sig) {
             return Some(offset);
@@ -221,24 +212,20 @@ pub fn get_field_offset(image_name: &str, namespace: &str, class_name: &str, fie
 
         let field_cstr = CString::new(field_name).ok()?;
         let field = get_field(klass, field_cstr.as_ptr() as *const i8);
-        
         if field.is_null() {
             return None;
         }
 
         let offset = get_offset(field);
-        
         if let Some(cache) = CACHE_FIELDS.lock().unwrap().as_mut() {
             cache.insert(sig, offset);
         }
-
         Some(offset)
     }
 }
 
 pub fn get_method_offset(image_name: &str, namespace: &str, class_name: &str, method_name: &str, args_count: i32) -> Option<*mut std::ffi::c_void> {
     let sig = format!("{}{}{}{}{}", image_name, namespace, class_name, method_name, args_count);
-    
     if let Some(cache) = CACHE_METHODS.lock().unwrap().as_ref() {
         if let Some(&method) = cache.get(&sig) {
             return Some(method);
@@ -251,17 +238,14 @@ pub fn get_method_offset(image_name: &str, namespace: &str, class_name: &str, me
 
         let method_cstr = CString::new(method_name).ok()?;
         let method_ptr = get_method(klass, method_cstr.as_ptr() as *const i8, args_count);
-        
         if method_ptr.is_null() {
             return None;
         }
 
         let method = *(method_ptr as *const *mut std::ffi::c_void);
-
         if let Some(cache) = CACHE_METHODS.lock().unwrap().as_mut() {
             cache.insert(sig, method);
         }
-
         Some(method)
     }
 }
@@ -271,7 +255,7 @@ pub fn is_assemblies_loaded() -> bool {
         if let Some(domain_get) = IL2CPP_DOMAIN_GET {
             if let Some(get_assemblies) = IL2CPP_DOMAIN_GET_ASSEMBLIES {
                 let domain = domain_get();
-                = let _size = = 0usize;
+                let mut size = 0usize;
                 let assemblies = get_assemblies(domain, &mut size);
                 return size != 0 && !assemblies.is_null();
             }
@@ -279,6 +263,3 @@ pub fn is_assemblies_loaded() -> bool {
         false
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-

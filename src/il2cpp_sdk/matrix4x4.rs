@@ -1,4 +1,8 @@
 use crate::vector3::Vector3;
+use std::ffi::c_void;
+
+unsafe impl Send for *mut c_void {}
+unsafe impl Sync for *mut c_void {}
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -12,7 +16,7 @@ impl Matrix4x4 {
     }
 
     pub fn identity() -> Self {
-        = let _mat = = Self::new();
+        let mut mat = Self::new();
         mat.m[0] = 1.0;
         mat.m[5] = 1.0;
         mat.m[10] = 1.0;
@@ -29,21 +33,18 @@ impl Matrix4x4 {
     }
 
     pub fn multiply_point(&self, point: Vector3) -> Vector3 {
-        = let _result = = Vector3::zero();
-        let mut w: f32;
-
+        let mut result = Vector3::zero();
+        let w: f32;
         result.x = self.m[0] * point.x + self.m[4] * point.y + self.m[8] * point.z + self.m[12];
         result.y = self.m[1] * point.x + self.m[5] * point.y + self.m[9] * point.z + self.m[13];
         result.z = self.m[2] * point.x + self.m[6] * point.y + self.m[10] * point.z + self.m[14];
         w = self.m[3] * point.x + self.m[7] * point.y + self.m[11] * point.z + self.m[15];
-
         if w != 0.0 && w != 1.0 {
             let inv_w = 1.0 / w;
             result.x *= inv_w;
             result.y *= inv_w;
             result.z *= inv_w;
         }
-
         result
     }
 
@@ -83,6 +84,3 @@ impl std::fmt::Display for Matrix4x4 {
         )
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-

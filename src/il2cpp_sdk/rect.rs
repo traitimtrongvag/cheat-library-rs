@@ -1,3 +1,8 @@
+use std::ffi::c_void;
+
+unsafe impl Send for *mut c_void {}
+unsafe impl Sync for *mut c_void {}
+
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Rect {
@@ -39,13 +44,6 @@ impl Default for Rect {
 
 impl std::fmt::Display for Rect {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Rect(x: {}, y: {}, width: {}, height: {})",
-            self.x, self.y, self.width, self.height
-        )
+        write!(f, "Rect(x: {}, y: {}, width: {}, height: {})", self.x, self.y, self.width, self.height)
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-

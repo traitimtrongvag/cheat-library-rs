@@ -1,5 +1,8 @@
 use std::ffi::c_void;
 
+unsafe impl Send for *mut c_void {}
+unsafe impl Sync for *mut c_void {}
+
 #[repr(C)]
 pub struct VirtualInvokeData {
     pub method_ptr: usize,
@@ -81,7 +84,7 @@ pub struct Il2CppArray<T> {
     pub monitor: *mut c_void,
     pub bounds: *mut c_void,
     pub max_length: i32,
-    pub items: [T; 0], // Flexible array member
+    pub items: [T; 0],
 }
 
 impl<T> Il2CppArray<T> {
@@ -90,7 +93,7 @@ impl<T> Il2CppArray<T> {
     }
 
     pub fn get_pointer(&self) -> *const T {
-        self.items.as_ptr() as *const i8
+        self.items.as_ptr()
     }
 
     pub fn get_pointer_mut(&mut self) -> *mut T {
@@ -111,7 +114,6 @@ impl Il2CppString {
         if self.length <= 0 {
             return String::new();
         }
-
         unsafe {
             let ptr = &self.start_char as *const u16;
             let slice = std::slice::from_raw_parts(ptr, self.length as usize);
@@ -376,6 +378,3 @@ impl Il2CppRect {
         }
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-

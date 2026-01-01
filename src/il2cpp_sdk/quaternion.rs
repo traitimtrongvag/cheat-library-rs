@@ -1,5 +1,9 @@
 use crate::vector3::Vector3;
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, Neg};
+use std::ffi::c_void;
+
+unsafe impl Send for *mut c_void {}
+unsafe impl Sync for *mut c_void {}
 
 pub const DEG2RAD: f32 = std::f32::consts::PI / 180.0;
 pub const RAD2DEG: f32 = 180.0 / std::f32::consts::PI;
@@ -29,12 +33,7 @@ impl Quaternion {
     }
 
     pub fn identity() -> Self {
-        Self {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-            w: 1.0,
-        }
+        Self { x: 0.0, y: 0.0, z: 0.0, w: 1.0 }
     }
 
     pub fn up(q: Self) -> Vector3 {
@@ -98,14 +97,12 @@ impl Quaternion {
         let x_rad = (x - 180.0) * DEG2RAD;
         let y_rad = (y - 180.0) * DEG2RAD;
         let z_rad = (z - 180.0) * DEG2RAD;
-
         let cx = (x_rad * 0.5).cos();
         let cy = (y_rad * 0.5).cos();
         let cz = (z_rad * 0.5).cos();
         let sx = (x_rad * 0.5).sin();
         let sy = (y_rad * 0.5).sin();
         let sz = (z_rad * 0.5).sin();
-
         Self {
             x: cx * sy * sz + cy * cz * sx,
             y: cx * cz * sy - cy * sx * sz,
@@ -117,12 +114,10 @@ impl Quaternion {
     pub fn from_to_rotation(from_vector: Vector3, to_vector: Vector3) -> Self {
         let dot = Vector3::dot(from_vector, to_vector);
         let k = (Vector3::sqr_magnitude(from_vector) * Vector3::sqr_magnitude(to_vector)).sqrt();
-
         if ((dot / k) + 1.0).abs() < 0.00001 {
             let ortho = Vector3::orthogonal(from_vector);
             return Self::from_vector(Vector3::normalized(ortho), 0.0);
         }
-
         let cross = Vector3::cross(from_vector, to_vector);
         Self::normalized(Self::from_vector(cross, dot + k))
     }
@@ -158,23 +153,18 @@ impl Quaternion {
     pub fn look_rotation(forward: Vector3, upwards: Vector3) -> Self {
         let forward_norm = Vector3::normalized(forward);
         let upwards_norm = Vector3::normalized(upwards);
-
         if Vector3::sqr_magnitude(forward_norm) < SMALL_FLOAT
             || Vector3::sqr_magnitude(upwards_norm) < SMALL_FLOAT
         {
             return Self::identity();
         }
-
         if (1.0 - Vector3::dot(forward_norm, upwards_norm).abs()) < SMALL_FLOAT {
             return Self::from_to_rotation(Vector3::forward(), forward_norm);
         }
-
         let right = Vector3::normalized(Vector3::cross(upwards_norm, forward_norm));
         let upwards_final = Vector3::cross(forward_norm, right);
-
-        = let _quaternion = = Self::identity();
+        let mut quaternion = Self::identity();
         let radicand = right.x + upwards_final.y + forward_norm.z;
-
         if radicand > 0.0 {
             quaternion.w = (1.0 + radicand).sqrt() * 0.5;
             let recip = 1.0 / (4.0 * quaternion.w);
@@ -200,7 +190,6 @@ impl Quaternion {
             quaternion.x = (forward_norm.x + right.z) * recip;
             quaternion.w = (right.y - upwards_final.x) * recip;
         }
-
         quaternion
     }
 
@@ -237,12 +226,11 @@ impl Quaternion {
     }
 
     pub fn slerp_unclamped(a: Self, b: Self, t: f32) -> Self {
-        = let _n3 = = Self::dot(a, b);
+        let mut n3 = Self::dot(a, b);
         let flag = n3 < 0.0;
         if flag {
             n3 = -n3;
         }
-
         let (n2, n1) = if n3 > 0.999999 {
             (1.0 - t, if flag { -t } else { t })
         } else {
@@ -250,33 +238,25 @@ impl Quaternion {
             let n5 = 1.0 / n4.sin();
             (
                 ((1.0 - t) * n4).sin() * n5,
-                if flag {
-                    -(t * n4).sin() * n5
-                } else {
-                    (t * n4).sin() * n5
-                },
+                if flag { -(t * n4).sin() * n5 } else { (t * n4).sin() * n5 },
             )
         };
-
         let quaternion = Self {
             x: n2 * a.x + n1 * b.x,
             y: n2 * a.y + n1 * b.y,
             z: n2 * a.z + n1 * b.z,
             w: n2 * a.w + n1 * b.w,
         };
-
         Self::normalized(quaternion)
     }
 
     pub fn to_angle_axis(rotation: Self) -> (f32, Vector3) {
-        = let _rotation_norm = = rotation;
+        let mut rotation_norm = rotation;
         if rotation.w > 1.0 {
             rotation_norm = Self::normalized(rotation);
         }
-
         let angle = 2.0 * rotation_norm.w.acos();
         let s = (1.0 - rotation_norm.w * rotation_norm.w).sqrt();
-
         let axis = if s < 0.00001 {
             Vector3::new(1.0, 0.0, 0.0)
         } else {
@@ -286,7 +266,6 @@ impl Quaternion {
                 rotation_norm.z / s,
             )
         };
-
         (angle, axis)
     }
 
@@ -297,7 +276,6 @@ impl Quaternion {
         let sqz = rotation.z * rotation.z;
         let unit = sqx + sqy + sqz + sqw;
         let test = rotation.x * rotation.w - rotation.y * rotation.z;
-
         if test > 0.4995 * unit {
             return Vector3::new(
                 std::f32::consts::FRAC_PI_2,
@@ -305,7 +283,6 @@ impl Quaternion {
                 0.0,
             );
         }
-
         if test < -0.4995 * unit {
             return Vector3::new(
                 -std::f32::consts::FRAC_PI_2,
@@ -313,7 +290,6 @@ impl Quaternion {
                 0.0,
             );
         }
-
         let v = Vector3::new(
             (2.0 * (rotation.w * rotation.x - rotation.y * rotation.z)).asin(),
             (2.0 * rotation.w * rotation.y + 2.0 * rotation.z * rotation.x)
@@ -321,7 +297,6 @@ impl Quaternion {
             (2.0 * rotation.w * rotation.z + 2.0 * rotation.x * rotation.y)
                 .atan2(1.0 - 2.0 * (rotation.z * rotation.z + rotation.x * rotation.x)),
         );
-
         (v * RAD2DEG) + Vector3::new(180.0, 180.0, 180.0)
     }
 }
@@ -329,72 +304,42 @@ impl Quaternion {
 impl Add<f32> for Quaternion {
     type Output = Self;
     fn add(self, rhs: f32) -> Self {
-        Self {
-            x: self.x + rhs,
-            y: self.y + rhs,
-            z: self.z + rhs,
-            w: self.w + rhs,
-        }
+        Self { x: self.x + rhs, y: self.y + rhs, z: self.z + rhs, w: self.w + rhs }
     }
 }
 
 impl Sub<f32> for Quaternion {
     type Output = Self;
     fn sub(self, rhs: f32) -> Self {
-        Self {
-            x: self.x - rhs,
-            y: self.y - rhs,
-            z: self.z - rhs,
-            w: self.w - rhs,
-        }
+        Self { x: self.x - rhs, y: self.y - rhs, z: self.z - rhs, w: self.w - rhs }
     }
 }
 
 impl Mul<f32> for Quaternion {
     type Output = Self;
     fn mul(self, rhs: f32) -> Self {
-        Self {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
+        Self { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs, w: self.w * rhs }
     }
 }
 
 impl Div<f32> for Quaternion {
     type Output = Self;
     fn div(self, rhs: f32) -> Self {
-        Self {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
+        Self { x: self.x / rhs, y: self.y / rhs, z: self.z / rhs, w: self.w / rhs }
     }
 }
 
 impl Add for Quaternion {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
+        Self { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z, w: self.w + rhs.w }
     }
 }
 
 impl Sub for Quaternion {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
+        Self { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z, w: self.w - rhs.w }
     }
 }
 
@@ -497,6 +442,3 @@ impl std::fmt::Display for Quaternion {
         write!(f, "({}, {}, {}, {})", self.x, self.y, self.z, self.w)
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-

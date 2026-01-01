@@ -1,4 +1,8 @@
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
+use std::ffi::c_void;
+
+unsafe impl Send for *mut c_void {}
+unsafe impl Sync for *mut c_void {}
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -152,23 +156,19 @@ impl Vector2 {
     ) -> Self {
         let mag_cur = Self::magnitude(current);
         let mag_tar = Self::magnitude(target);
-        let new_mag = mag_cur
-            + max_magnitude_delta * if mag_tar > mag_cur { 1.0 } else { -1.0 };
+        let new_mag = mag_cur + max_magnitude_delta * if mag_tar > mag_cur { 1.0 } else { -1.0 };
         let new_mag = new_mag.min(mag_cur.max(mag_tar)).max(mag_cur.min(mag_tar));
-
         let total_angle = Self::angle(current, target) - max_radians_delta;
         if total_angle <= 0.0 {
             return Self::normalized(target) * new_mag;
         } else if total_angle >= std::f32::consts::PI {
             return Self::normalized(-target) * new_mag;
         }
-
-        = let _axis = = current.x * target.y - current.y * target.x;
+        let mut axis = current.x * target.y - current.y * target.x;
         axis = axis / axis.abs();
         if (1.0 - axis.abs()) >= 0.00001 {
             axis = 1.0;
         }
-
         let current_normalized = Self::normalized(current);
         let new_vector = current_normalized * max_radians_delta.cos()
             + Self::new(-current_normalized.y, current_normalized.x)
@@ -220,70 +220,49 @@ impl Vector2 {
 impl Add<f32> for Vector2 {
     type Output = Self;
     fn add(self, rhs: f32) -> Self {
-        Self {
-            x: self.x + rhs,
-            y: self.y + rhs,
-        }
+        Self { x: self.x + rhs, y: self.y + rhs }
     }
 }
 
 impl Sub<f32> for Vector2 {
     type Output = Self;
     fn sub(self, rhs: f32) -> Self {
-        Self {
-            x: self.x - rhs,
-            y: self.y - rhs,
-        }
+        Self { x: self.x - rhs, y: self.y - rhs }
     }
 }
 
 impl Mul<f32> for Vector2 {
     type Output = Self;
     fn mul(self, rhs: f32) -> Self {
-        Self {
-            x: self.x * rhs,
-            y: self.y * rhs,
-        }
+        Self { x: self.x * rhs, y: self.y * rhs }
     }
 }
 
 impl Div<f32> for Vector2 {
     type Output = Self;
     fn div(self, rhs: f32) -> Self {
-        Self {
-            x: self.x / rhs,
-            y: self.y / rhs,
-        }
+        Self { x: self.x / rhs, y: self.y / rhs }
     }
 }
 
 impl Add for Vector2 {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
+        Self { x: self.x + rhs.x, y: self.y + rhs.y }
     }
 }
 
 impl Sub for Vector2 {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-        }
+        Self { x: self.x - rhs.x, y: self.y - rhs.y }
     }
 }
 
 impl Mul for Vector2 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
-        Self {
-            x: self.x * rhs.x,
-            y: self.y * rhs.y,
-        }
+        Self { x: self.x * rhs.x, y: self.y * rhs.y }
     }
 }
 
@@ -347,6 +326,3 @@ impl std::fmt::Display for Vector2 {
         write!(f, "({}, {})", self.x, self.y)
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-

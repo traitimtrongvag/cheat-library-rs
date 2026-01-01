@@ -1,13 +1,3 @@
-use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
-
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct VInt3 {
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
-}
-
 impl VInt3 {
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         Self { x, y, z }
@@ -185,32 +175,26 @@ impl VInt3 {
         let mag_tar = Self::magnitude(target);
         let new_mag = mag_cur + max_magnitude_delta * if mag_tar > mag_cur { 1 } else { -1 };
         let new_mag = new_mag.min(mag_cur.max(mag_tar)).max(mag_cur.min(mag_tar));
-
         let total_angle = Self::angle(current, target) - max_radians_delta;
         if total_angle <= 0.0 {
             return Self::normalized(target) * new_mag;
         } else if total_angle >= std::f32::consts::PI {
             return Self::normalized(-target) * new_mag;
         }
-
-        = let _axis = = Self::cross(current, target);
+        let mut axis = Self::cross(current, target);
         let mag_axis = Self::magnitude(axis);
         if mag_axis == 0 {
             axis = Self::normalized(Self::cross(current, current + Self::new(4, 5, -4)));
         } else {
             axis = axis / mag_axis;
         }
-
         let current_normalized = Self::normalized(current);
-        let new_vector_x =
-            (current_normalized.x as f32 * max_radians_delta.cos()) as i32
-                + Self::cross(axis, current_normalized).x;
-        let new_vector_y =
-            (current_normalized.y as f32 * max_radians_delta.cos()) as i32
-                + Self::cross(axis, current_normalized).y;
-        let new_vector_z =
-            (current_normalized.z as f32 * max_radians_delta.cos()) as i32
-                + Self::cross(axis, current_normalized).z;
+        let new_vector_x = (current_normalized.x as f32 * max_radians_delta.cos()) as i32
+            + Self::cross(axis, current_normalized).x;
+        let new_vector_y = (current_normalized.y as f32 * max_radians_delta.cos()) as i32
+            + Self::cross(axis, current_normalized).y;
+        let new_vector_z = (current_normalized.z as f32 * max_radians_delta.cos()) as i32
+            + Self::cross(axis, current_normalized).z;
         let new_vector = Self::new(new_vector_x, new_vector_y, new_vector_z);
         new_vector * new_mag
     }
@@ -267,66 +251,42 @@ impl VInt3 {
 impl Add<i32> for VInt3 {
     type Output = Self;
     fn add(self, rhs: i32) -> Self {
-        Self {
-            x: self.x + rhs,
-            y: self.y + rhs,
-            z: self.z + rhs,
-        }
+        Self { x: self.x + rhs, y: self.y + rhs, z: self.z + rhs }
     }
 }
 
 impl Sub<i32> for VInt3 {
     type Output = Self;
     fn sub(self, rhs: i32) -> Self {
-        Self {
-            x: self.x - rhs,
-            y: self.y - rhs,
-            z: self.z - rhs,
-        }
+        Self { x: self.x - rhs, y: self.y - rhs, z: self.z - rhs }
     }
 }
 
 impl Mul<i32> for VInt3 {
     type Output = Self;
     fn mul(self, rhs: i32) -> Self {
-        Self {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-        }
+        Self { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
     }
 }
 
 impl Div<i32> for VInt3 {
     type Output = Self;
     fn div(self, rhs: i32) -> Self {
-        Self {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-        }
+        Self { x: self.x / rhs, y: self.y / rhs, z: self.z / rhs }
     }
 }
 
 impl Add for VInt3 {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
+        Self { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
     }
 }
 
 impl Sub for VInt3 {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
+        Self { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z }
     }
 }
 
@@ -396,6 +356,3 @@ impl std::fmt::Display for VInt3 {
         write!(f, "({}, {}, {})", self.x, self.y, self.z)
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-
