@@ -2,9 +2,6 @@ use crate::vector3::Vector3;
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, Neg};
 use std::ffi::c_void;
 
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-
 pub const DEG2RAD: f32 = std::f32::consts::PI / 180.0;
 pub const RAD2DEG: f32 = 180.0 / std::f32::consts::PI;
 const SMALL_FLOAT: f32 = 0.0000000001;
