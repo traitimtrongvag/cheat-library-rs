@@ -2,9 +2,6 @@ use crate::vector3::Vector3;
 use crate::quaternion::Quaternion;
 use std::ffi::c_void;
 
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-
 #[repr(C)]
 pub struct MonoString {
     pub klass: *mut c_void,
