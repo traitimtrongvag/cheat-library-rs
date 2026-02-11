@@ -7,7 +7,7 @@ mod il2cpp_sdk;
 mod and64inlinehook;
 
 use jni::JNIEnv;
-use jni::objects::{JClass, JString};
+use jni::objects::JClass;
 use jni::sys::jstring;
 use log::LevelFilter;
 use android_logger::Config;
@@ -53,5 +53,4 @@ pub unsafe extern "C" fn Java_com_example_CheatLib_getVersion(
 pub use imgui_api::*;
 pub use remap::*;
 pub use includes::*;
-pub use il2cpp_sdk::*;
 pub use and64inlinehook::*;
