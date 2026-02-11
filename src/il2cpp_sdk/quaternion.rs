@@ -1,6 +1,5 @@
 use crate::il2cpp_sdk::vector3::Vector3;
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, Neg};
-use std::ffi::c_void;
 
 pub const DEG2RAD: f32 = std::f32::consts::PI / 180.0;
 pub const RAD2DEG: f32 = 180.0 / std::f32::consts::PI;
