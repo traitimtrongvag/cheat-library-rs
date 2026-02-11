@@ -39,23 +39,27 @@ fn main() {
         .flag("-Wno-unused-parameter")
         .flag("-Wno-sign-compare")
         .include("src/ImGui")
-        .include("src/ImGui/backends")
-        .file("src/ImGui/imgui.cpp")
-        .file("src/ImGui/imgui_draw.cpp")
-        .file("src/ImGui/imgui_tables.cpp")
-        .file("src/ImGui/imgui_widgets.cpp")
-        .file("src/ImGui/backends/imgui_impl_android.cpp")
-        .file("src/ImGui/backends/imgui_impl_opengl3.cpp")
-        .file("src/ImGui/imgui_wrapper.cpp"); 
+        .include("src/ImGui/backends");
 
     if std::path::Path::new("src/ImGui/thirdparty").exists() {
         build.include("src/ImGui/thirdparty");
         if std::path::Path::new("src/ImGui/thirdparty/GLES3").exists() {
             build.include("src/ImGui/thirdparty/GLES3");
         }
+        if std::path::Path::new("src/ImGui/thirdparty/KHR").exists() {
+            build.include("src/ImGui/thirdparty/KHR");
+        }
     }
 
-    build.target("aarch64-linux-android");
+    build
+        .file("src/ImGui/imgui.cpp")
+        .file("src/ImGui/imgui_draw.cpp")
+        .file("src/ImGui/imgui_tables.cpp")
+        .file("src/ImGui/imgui_widgets.cpp")
+        .file("src/ImGui/backends/imgui_impl_android.cpp")
+        .file("src/ImGui/backends/imgui_impl_opengl3.cpp")
+        .file("src/ImGui/imgui_wrapper.cpp")
+        .target("aarch64-linux-android");
     
     build.compile("imgui_android");
 
