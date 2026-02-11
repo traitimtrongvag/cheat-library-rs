@@ -30,9 +30,6 @@ static mut IL2CPP_CLASS_GET_NAME: Option<unsafe extern "C" fn(*mut std::ffi::c_v
 static mut IL2CPP_CLASS_GET_NESTED_TYPES: Option<unsafe extern "C" fn(*mut std::ffi::c_void, *mut *mut std::ffi::c_void) -> *mut std::ffi::c_void> = None;
 static mut IL2CPP_OBJECT_NEW: Option<unsafe extern "C" fn(*mut std::ffi::c_void) -> *mut std::ffi::c_void> = None;
 
-unsafe impl Send for *mut std::ffi::c_void {}
-unsafe impl Sync for *mut std::ffi::c_void {}
-
 fn get_export_function(lib: &str, name: &str) -> Option<*mut std::ffi::c_void> {
     unsafe {
         let lib_cstr = CString::new(lib).ok()?;
