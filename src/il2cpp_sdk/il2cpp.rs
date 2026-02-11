@@ -140,7 +140,7 @@ pub fn get_image(image_name: &str) -> Option<*mut std::ffi::c_void> {
             let img = get_image_fn(assembly) as *mut std::ffi::c_void;
             let name_ptr = get_name(img);
             if !name_ptr.is_null() {
-                let name = CStr::from_ptr(name_ptr).to_str().ok()?;
+                let name = CStr::from_ptr(name_ptr as *const u8).to_str().ok()?;
                 if name == image_name {
                     return Some(img);
                 }
@@ -179,7 +179,7 @@ pub fn get_class(image_name: &str, namespace: &str, class_name: &str) -> Option<
                 }
                 let name_ptr = get_name(nested);
                 if !name_ptr.is_null() {
-                    let name = CStr::from_ptr(name_ptr);
+                    let name = CStr::from_ptr(name_ptr as *const u8);
                     if name.to_bytes() == target_name.as_bytes() {
                         klass = nested;
                         break;
