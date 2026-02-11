@@ -134,7 +134,7 @@ impl Vector2 {
 
     pub fn project(a: Self, b: Self) -> Self {
         let m = Self::magnitude(b);
-        Self::dot(a, b) / (m * m) * b
+        b * (Self::dot(a, b) / (m * m))
     }
 
     pub fn reflect(vector: Self, plane_normal: Self) -> Self {
