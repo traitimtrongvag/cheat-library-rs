@@ -1,5 +1,5 @@
-use crate::vector3::Vector3;
-use crate::quaternion::Quaternion;
+use crate::il2cpp_sdk::vector3::Vector3;
+use crate::il2cpp_sdk::quaternion::Quaternion;
 use std::ffi::c_void;
 
 #[repr(C)]
@@ -158,13 +158,13 @@ pub fn to_euler_rad(q: Quaternion) -> Vector3 {
         v.y = 2.0 * q.y.atan2(q.x);
         v.x = std::f32::consts::FRAC_PI_2;
         v.z = 0.0;
-        return normalize_angles(v * crate::quaternion::RAD2DEG);
+        return normalize_angles(v * crate::il2cpp_sdk::quaternion::RAD2DEG);
     }
     if test < -0.4995 * unit {
         v.y = -2.0 * q.y.atan2(q.x);
         v.x = -std::f32::consts::FRAC_PI_2;
         v.z = 0.0;
-        return normalize_angles(v * crate::quaternion::RAD2DEG);
+        return normalize_angles(v * crate::il2cpp_sdk::quaternion::RAD2DEG);
     }
     let q_rotated = Quaternion::new(q.w, q.z, q.x, q.y);
     v.y = (2.0 * q_rotated.x * q_rotated.w + 2.0 * q_rotated.y * q_rotated.z)
@@ -172,7 +172,7 @@ pub fn to_euler_rad(q: Quaternion) -> Vector3 {
     v.x = (2.0 * (q_rotated.x * q_rotated.z - q_rotated.w * q_rotated.y)).asin();
     v.z = (2.0 * q_rotated.x * q_rotated.y + 2.0 * q_rotated.z * q_rotated.w)
         .atan2(1.0 - 2.0 * (q_rotated.y * q_rotated.y + q_rotated.z * q_rotated.z));
-    normalize_angles(v * crate::quaternion::RAD2DEG)
+    normalize_angles(v * crate::il2cpp_sdk::quaternion::RAD2DEG)
 }
 
 pub fn get_rotation_to_location(target_location: Vector3, y_bias: f32, my_loc: Vector3) -> Quaternion {
