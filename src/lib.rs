@@ -15,7 +15,7 @@ use android_logger::Config;
 static mut IS_INITIALIZED: bool = false;
 
 #[no_mangle]
-pub extern "C" fn JNI_OnLoad(vm: jni::JavaVM, _reserved: *mut std::ffi::c_void) -> jni::sys::jint {
+pub extern "C" fn JNI_OnLoad(_vm: jni::JavaVM, _reserved: *mut std::ffi::c_void) -> jni::sys::jint {
     android_logger::init_once(
         Config::default()
             .with_max_level(LevelFilter::Debug)
@@ -28,7 +28,7 @@ pub extern "C" fn JNI_OnLoad(vm: jni::JavaVM, _reserved: *mut std::ffi::c_void) 
 
 #[no_mangle]
 pub unsafe extern "C" fn Java_com_example_CheatLib_initialize(
-    env: JNIEnv,
+    _env: JNIEnv,
     _class: JClass,
 ) {
     if IS_INITIALIZED {
