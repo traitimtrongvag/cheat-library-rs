@@ -1,3 +1,4 @@
+use std::os::raw::c_void;
 
 pub mod il2cpp;
 pub mod il2cpp_types;
