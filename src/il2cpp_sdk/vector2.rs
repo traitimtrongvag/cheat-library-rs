@@ -1,5 +1,4 @@
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
-use std::ffi::c_void;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq)]
