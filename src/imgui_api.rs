@@ -1,7 +1,7 @@
 #![allow(non_snake_case, dead_code)]
 
 use std::ffi::CString;
-use std::os::raw::{c_char, c_float, c_int, c_void};
+use std::os::raw::{c_char, c_float, c_int};
 
 include!(concat!(env!("OUT_DIR"), "/imgui_bindings.rs"));
 
