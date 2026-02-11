@@ -1,5 +1,3 @@
-use std::ffi::c_void;
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Rect {
