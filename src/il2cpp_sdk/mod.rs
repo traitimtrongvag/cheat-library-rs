@@ -73,6 +73,3 @@ mod tests {
         assert_eq!(m.get(3, 3), 1.0);
     }
 }
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-
