@@ -1,9 +1,6 @@
 use crate::vector3::Vector3;
 use std::ffi::c_void;
 
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct Matrix4x4 {
