@@ -12,7 +12,7 @@ extern "C" bool ImGui_InitOpenGL3(const char* glsl_version) {
 }
 
 extern "C" void ImGui_AndroidNewFrame(int width, int height) {
-    ImGui_ImplAndroid_NewFrame();
+    ImGui_ImplAndroid_NewFrame(width, height);
 }
 
 extern "C" void ImGui_OpenGL3NewFrame() {
