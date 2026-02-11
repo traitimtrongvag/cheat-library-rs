@@ -562,7 +562,7 @@ unsafe fn fix_instructions(mut inp: *const u32, count: i32, mut outp: *mut u32) 
         outp = outp.add(1);
     }
 
-    let total = (outp as usize - outp_base as usize);
+    let total = outp as usize - outp_base as usize;
     flush_cache(outp_base, total);
 }
 
