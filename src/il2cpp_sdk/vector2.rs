@@ -1,9 +1,6 @@
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
 use std::ffi::c_void;
 
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector2 {
