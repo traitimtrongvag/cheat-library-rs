@@ -34,11 +34,11 @@ fn get_export_function(lib: &str, name: &str) -> Option<*mut std::ffi::c_void> {
     unsafe {
         let lib_cstr = CString::new(lib).ok()?;
         let name_cstr = CString::new(name).ok()?;
-        let handle = libc::dlopen(lib_cstr.as_ptr() as *const i8, libc::RTLD_NOW);
+        let handle = libc::dlopen(lib_cstr.as_ptr(), libc::RTLD_NOW);
         if handle.is_null() {
             return None;
         }
-        let func = dlsym(handle, name_cstr.as_ptr() as *const i8);
+        let func = dlsym(handle, name_cstr.as_ptr());
         if func.is_null() {
             None
         } else {
@@ -135,7 +135,7 @@ pub fn get_image(image_name: &str) -> Option<*mut std::ffi::c_void> {
             let img = get_image_fn(assembly) as *mut std::ffi::c_void;
             let name_ptr = get_name(img);
             if !name_ptr.is_null() {
-                let name = CStr::from_ptr(name_ptr as *const i8).to_str().ok()?;
+                let name = CStr::from_ptr(name_ptr).to_str().ok()?;
                 if name == image_name {
                     return Some(img);
                 }
@@ -174,7 +174,7 @@ pub fn get_class(image_name: &str, namespace: &str, class_name: &str) -> Option<
                 }
                 let name_ptr = get_name(nested);
                 if !name_ptr.is_null() {
-                    let name = CStr::from_ptr(name_ptr as *const i8);
+                    let name = CStr::from_ptr(name_ptr);
                     if name.to_bytes() == target_name.as_bytes() {
                         klass = nested;
                         break;
