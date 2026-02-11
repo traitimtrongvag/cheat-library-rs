@@ -347,9 +347,9 @@ unsafe fn fix_loadlit(
 ) -> bool {
     let ins = **inp;
 
-    // Skip PRFM instruction
     if (ins & 0xff000000) == 0xd8000000 {
-        ctx.process_fix_map(ctx.get_and_set_current_index(*inp, *outp));
+        let index = ctx.get_and_set_current_index(*inp, *outp);
+        ctx.process_fix_map(index);
         *inp = inp.add(1);
         return true;
     }
@@ -401,7 +401,7 @@ unsafe fn fix_loadlit(
         ptr::copy_nonoverlapping(absolute_addr as *const u32, outp.add(2), ns);
         *outp = outp.add(2 + ns);
     } else {
-        let mut faligned_shift = faligned >> 2;
+        let faligned_shift = faligned >> 2;
         while (new_pc_offset & faligned_shift as i64) != 0 {
             **outp = A64_NOP;
             *outp = outp.add(1);
@@ -536,7 +536,8 @@ unsafe fn fix_instructions(mut inp: *const u32, count: i32, mut outp: *mut u32) 
             continue;
         }
 
-        ctx.process_fix_map(ctx.get_and_set_current_index(inp, outp));
+        let index = ctx.get_and_set_current_index(inp, outp);
+        ctx.process_fix_map(index);
         *outp = *inp;
         outp = outp.add(1);
         inp = inp.add(1);
@@ -545,7 +546,7 @@ unsafe fn fix_instructions(mut inp: *const u32, count: i32, mut outp: *mut u32) 
 
     const MASK: u64 = 0x03ffffff;
     let callback = inp as i64;
-    let mut pc_offset = (callback - outp as i64) >> 2;
+    let pc_offset = (callback - outp as i64) >> 2;
 
     if pc_offset.abs() >= (MASK >> 1) as i64 {
         if (outp.add(2) as u64 & 7) != 0 {
