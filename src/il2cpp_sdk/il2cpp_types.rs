@@ -1,8 +1,5 @@
 use std::ffi::c_void;
 
-unsafe impl Send for *mut c_void {}
-unsafe impl Sync for *mut c_void {}
-
 #[repr(C)]
 pub struct VirtualInvokeData {
     pub method_ptr: usize,
