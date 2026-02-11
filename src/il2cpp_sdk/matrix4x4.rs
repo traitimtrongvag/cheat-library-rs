@@ -1,5 +1,4 @@
 use crate::il2cpp_sdk::vector3::Vector3;
-use std::ffi::c_void;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
