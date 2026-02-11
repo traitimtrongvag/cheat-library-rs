@@ -1,3 +1,13 @@
+use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct VInt3 {
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+}
+
 impl VInt3 {
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         Self { x, y, z }
