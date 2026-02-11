@@ -1,6 +1,5 @@
 use std::env;
 use std::path::PathBuf;
-use std::process::Command;
 
 fn main() {
     println!("cargo:rerun-if-changed=src/includes/dobby/libraries/arm64-v8a/");
