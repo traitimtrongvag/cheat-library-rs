@@ -1,4 +1,4 @@
-use crate::vector3::Vector3;
+use crate::il2cpp_sdk::vector3::Vector3;
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, Neg};
 use std::ffi::c_void;
 
