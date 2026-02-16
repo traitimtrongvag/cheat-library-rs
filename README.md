@@ -4,3 +4,9 @@ To build, run:
 ```bash
 cargo build --release --target aarch64-linux-android
 ```
+
+or for `32-bit` devices
+
+```bash
+cargo build --release --target armv7-linux-androideabi
+```
