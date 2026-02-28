@@ -11,8 +11,9 @@ use jni::objects::JClass;
 use jni::sys::jstring;
 use log::LevelFilter;
 use android_logger::Config;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-static mut IS_INITIALIZED: bool = false;
+static IS_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 #[no_mangle]
 pub extern "C" fn JNI_OnLoad(_vm: jni::JavaVM, _reserved: *mut std::ffi::c_void) -> jni::sys::jint {
@@ -27,17 +28,16 @@ pub extern "C" fn JNI_OnLoad(_vm: jni::JavaVM, _reserved: *mut std::ffi::c_void)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Java_com_example_CheatLib_initialize(
+pub extern "C" fn Java_com_example_CheatLib_initialize(
     _env: JNIEnv,
     _class: JClass,
 ) {
-    if IS_INITIALIZED {
+    if IS_INITIALIZED.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
         log::warn!("Library already initialized");
         return;
     }
 
     log::info!("Initializing cheat library");
-    IS_INITIALIZED = true;
 }
 
 #[no_mangle]
