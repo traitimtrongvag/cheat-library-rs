@@ -7,6 +7,12 @@ pub struct MemoryBackup {
     orig_code: Vec<u8>,
 }
 
+impl Default for MemoryBackup {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MemoryBackup {
     pub fn new() -> Self {
         Self {

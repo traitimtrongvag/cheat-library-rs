@@ -9,6 +9,12 @@ pub struct MemoryPatch {
     patch_code: Vec<u8>,
 }
 
+impl Default for MemoryPatch {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MemoryPatch {
     pub fn new() -> Self {
         Self {
