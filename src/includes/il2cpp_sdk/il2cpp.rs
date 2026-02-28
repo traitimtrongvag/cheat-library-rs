@@ -132,7 +132,9 @@ pub fn attach(libname: &str) -> Result<(), i32> {
         IL2CPP_OBJECT_NEW = get_export_function(libname, "il2cpp_object_new")
             .map(|f| std::mem::transmute(f));
 
-        if IL2CPP_DOMAIN_GET.is_none() || IL2CPP_CLASS_FROM_NAME.is_none() {
+        if (*std::ptr::addr_of!(IL2CPP_DOMAIN_GET)).is_none()
+            || (*std::ptr::addr_of!(IL2CPP_CLASS_FROM_NAME)).is_none()
+        {
             return Err(-1);
         }
 
