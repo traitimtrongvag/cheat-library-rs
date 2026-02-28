@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::il2cpp_sdk::vector3::Vector3;
 use crate::il2cpp_sdk::quaternion::Quaternion;
 use std::ffi::c_void;

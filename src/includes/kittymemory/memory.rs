@@ -54,6 +54,12 @@ impl ProcMap {
     }
 }
 
+impl Default for ProcMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 fn sys_page_size() -> usize {
     let v = unsafe { sysconf(_SC_PAGESIZE) };
     if v <= 0 {

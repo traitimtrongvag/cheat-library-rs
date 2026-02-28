@@ -1,7 +1,6 @@
 #![allow(non_camel_case_types, non_snake_case)]
 
 use std::os::raw::{c_char, c_int, c_void};
-use std::ptr;
 
 pub type addr_t = usize;
 pub type addr32_t = u32;
