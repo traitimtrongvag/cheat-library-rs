@@ -153,7 +153,8 @@ pub fn find_register_native_fn(maps: &[ProcMap], name: &str) -> Option<RegisterN
 
     
     for m in maps.iter() {
-        if m.is_rx {
+        // strings live in read-only data (.rodata), not executable pages
+        if !m.executable && m.readable {
             let found = find_data_first(m.start_address as usize, m.end_address as usize, name_bytes);
             if found != 0 {
                 string_loc = found;
