@@ -1,4 +1,3 @@
-use crate::includes::il2cpp_sdk::vector3;
 use crate::includes::il2cpp_sdk::quaternion;
 use crate::includes::il2cpp_sdk::vector3::Vector3;
 use crate::includes::il2cpp_sdk::quaternion::Quaternion;
