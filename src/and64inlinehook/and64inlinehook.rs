@@ -69,6 +69,7 @@ impl Default for FixInfo {
 }
 
 #[derive(Clone, Copy)]
+#[allow(dead_code)]
 union InsValue {
     insu: u64,
     ins: i64,

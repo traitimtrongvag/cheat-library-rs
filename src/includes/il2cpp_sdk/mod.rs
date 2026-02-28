@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 
 pub mod il2cpp;
 pub mod il2cpp_types;

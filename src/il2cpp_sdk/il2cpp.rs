@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::ffi::c_void;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};

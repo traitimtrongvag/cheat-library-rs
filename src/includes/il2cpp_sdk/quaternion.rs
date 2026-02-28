@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::includes::il2cpp_sdk::vector3::Vector3;
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, Neg};
 

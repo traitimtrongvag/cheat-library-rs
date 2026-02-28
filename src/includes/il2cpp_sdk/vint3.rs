@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
 
 #[repr(C)]

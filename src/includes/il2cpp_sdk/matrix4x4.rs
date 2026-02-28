@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::includes::il2cpp_sdk::vector3::Vector3;
 
 #[repr(C)]
