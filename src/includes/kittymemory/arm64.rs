@@ -18,26 +18,29 @@ pub mod kitty_arm64 {
 
     pub fn decode_adr_imm(insn: u32, imm: &mut i64) -> bool {
         if is_insn_adr(insn) || is_insn_adrp(insn) {
-            let mut imm_val: i64 = (bits_from(insn, 5, 19) as i64) << 2;
-            imm_val |= bits_from(insn, 29, 2) as i64;
-
             if is_insn_adrp(insn) {
-                let msbt: u64 = ((imm_val >> 20) & 1) as u64;
-
-                let _v: u64 = (imm_val as u64) << 12;
-
-                const BIT33: u64 = 1u64 << 32; // note: C++ used <<33 then or, we'll follow same outcome
-                let top_mask = ((1u64 << 32) - msbt) << 33;
-                let imm_val_shifted = ( ( (bits_from(insn, 5, 19) as i64) << 2 ) as u64 ) << 12;
-                let result = top_mask | imm_val_shifted;
-                *imm = result as i64;
+                // ADRP: imm = sign_extend(immhi:immlo, 21) << 12
+                let immlo = bits_from(insn, 29, 2) as i64;
+                let immhi = bits_from(insn, 5, 19) as i64;
+                let imm21 = (immhi << 2) | immlo;
+                // sign-extend from bit 20
+                let imm21_sx = if imm21 & (1 << 20) != 0 {
+                    imm21 | !((1i64 << 21) - 1)
+                } else {
+                    imm21
+                };
+                *imm = imm21_sx << 12;
             } else {
-                if (imm_val & (1 << (21 - 1))) != 0 {
-                    imm_val |= !((1i64 << 21) - 1);
-                }
-                *imm = imm_val;
+                // ADR: imm = sign_extend(immhi:immlo, 21)
+                let immlo = bits_from(insn, 29, 2) as i64;
+                let immhi = bits_from(insn, 5, 19) as i64;
+                let imm21 = (immhi << 2) | immlo;
+                *imm = if imm21 & (1 << 20) != 0 {
+                    imm21 | !((1i64 << 21) - 1)
+                } else {
+                    imm21
+                };
             }
-
             return true;
         }
         false
@@ -87,16 +90,16 @@ pub mod kitty_arm64 {
 }
 
 pub use kitty_arm64::{
-    bit_from as bit_from,
-    bits_from as bits_from,
-    decode_addsub_imm as decode_addsub_imm,
-    decode_adr_imm as decode_adr_imm,
-    decode_ldrstr_uimm as decode_ldrstr_uimm,
-    is_insn_adr as is_insn_adr,
-    is_insn_adrp as is_insn_adrp,
-    is_insn_ld as is_insn_ld,
-    is_insn_ldst as is_insn_ldst,
-    is_insn_ldst_uimm as is_insn_ldst_uimm,
+    bit_from,
+    bits_from,
+    decode_addsub_imm,
+    decode_adr_imm,
+    decode_ldrstr_uimm,
+    is_insn_adr,
+    is_insn_adrp,
+    is_insn_ld,
+    is_insn_ldst,
+    is_insn_ldst_uimm,
 };
 
 #[cfg(test)]
