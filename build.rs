@@ -37,6 +37,7 @@ fn main() {
         .flag("-Wno-unused-variable")
         .flag("-Wno-unused-parameter")
         .flag("-Wno-sign-compare")
+        .flag("-Wno-uninitialized")
         .include("src/ImGui")
         .include("src/ImGui/backends");
 
