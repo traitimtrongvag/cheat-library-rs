@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::fs::File;
@@ -6,13 +7,23 @@ use std::sync::Mutex;
 use libc::dlsym;
 
 #[derive(Clone, Copy)]
-struct SyncPtr(*mut std::ffi::c_void);
-unsafe impl Send for SyncPtr {}
-unsafe impl Sync for SyncPtr {}
+struct SendPtr(*mut c_void);
+unsafe impl Send for SendPtr {}
+unsafe impl Sync for SendPtr {}
+
+impl SendPtr {
+    fn new(ptr: *mut c_void) -> Self {
+        SendPtr(ptr)
+    }
+
+    fn as_ptr(self) -> *mut c_void {
+        self.0
+    }
+}
 
 static CACHE_FIELDS: Mutex<Option<HashMap<String, usize>>> = Mutex::new(None);
-static CACHE_METHODS: Mutex<Option<HashMap<String, SyncPtr>>> = Mutex::new(None);
-static CACHE_CLASSES: Mutex<Option<HashMap<String, SyncPtr>>> = Mutex::new(None);
+static CACHE_METHODS: Mutex<Option<HashMap<String, SendPtr>>> = Mutex::new(None);
+static CACHE_CLASSES: Mutex<Option<HashMap<String, SendPtr>>> = Mutex::new(None);
 
 static mut IL2CPP_LIB_BASE: usize = 0;
 
@@ -154,7 +165,7 @@ pub fn get_class(image_name: &str, namespace: &str, class_name: &str) -> Option<
     let sig = format!("{}{}{}", image_name, namespace, class_name);
     if let Some(cache) = CACHE_CLASSES.lock().unwrap().as_ref() {
         if let Some(&ptr) = cache.get(&sig) {
-            return Some(ptr.0);
+            return Some(ptr.as_ptr());
         }
     }
 
@@ -190,7 +201,7 @@ pub fn get_class(image_name: &str, namespace: &str, class_name: &str) -> Option<
 
         if !klass.is_null() {
             if let Some(cache) = CACHE_CLASSES.lock().unwrap().as_mut() {
-                cache.insert(sig, SyncPtr(klass));
+                cache.insert(sig, SendPtr::new(klass));
             }
             Some(klass)
         } else {
@@ -230,7 +241,7 @@ pub fn get_method_offset(image_name: &str, namespace: &str, class_name: &str, me
     let sig = format!("{}{}{}{}{}", image_name, namespace, class_name, method_name, args_count);
     if let Some(cache) = CACHE_METHODS.lock().unwrap().as_ref() {
         if let Some(&ptr) = cache.get(&sig) {
-            return Some(ptr.0);
+            return Some(ptr.as_ptr());
         }
     }
 
@@ -246,7 +257,7 @@ pub fn get_method_offset(image_name: &str, namespace: &str, class_name: &str, me
 
         let method = *(method_ptr as *const *mut std::ffi::c_void);
         if let Some(cache) = CACHE_METHODS.lock().unwrap().as_mut() {
-            cache.insert(sig, SyncPtr(method));
+            cache.insert(sig, SendPtr::new(method));
         }
         Some(method)
     }
