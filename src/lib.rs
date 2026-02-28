@@ -3,7 +3,6 @@
 mod imgui_api;
 mod remap;
 mod includes;
-mod il2cpp_sdk;
 mod and64inlinehook;
 
 use jni::JNIEnv;
