@@ -35,10 +35,15 @@ impl Drop for StrEnc {
     }
 }
 
+/// XOR-encrypt a string literal with a caller-supplied key at compile time.
+///
+/// Usage: `obfuscate!(b"my secret", b"mykey1234567890")`
+///
+/// Both arguments must be byte string literals so the XOR is constant-foldable.
+/// The resulting `StrEnc` zeroes its buffer on drop.
 #[macro_export]
 macro_rules! obfuscate {
-    ($s:expr) => {{
-        const KEY: &[u8] = b"simple_key_123";
-        $crate::includes::tools::str_enc::StrEnc::new($s.as_bytes(), KEY)
+    ($s:expr, $key:expr) => {{
+        $crate::includes::tools::str_enc::StrEnc::new($s, $key)
     }};
 }
