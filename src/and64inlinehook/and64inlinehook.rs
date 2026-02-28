@@ -579,7 +579,8 @@ fn fast_allocate_trampoline() -> Option<*mut u32> {
             Ordering::Acquire
         ).is_ok() {
             unsafe {
-                return Some(INSNS_POOL.data[(idx + 1) as usize].as_mut_ptr());
+                let pool = std::ptr::addr_of_mut!(INSNS_POOL);
+                return Some((*pool).data[(idx + 1) as usize].as_mut_ptr());
             }
         }
     }
@@ -673,7 +674,7 @@ pub unsafe fn a64_hook_function(
 /// Initialize the instruction pool
 pub unsafe fn init_hook_pool() {
     make_rwx(
-        INSNS_POOL.data.as_mut_ptr() as *mut u32,
+        std::ptr::addr_of_mut!(INSNS_POOL) as *mut u32,
         std::mem::size_of::<InsnsPool>(),
     );
     log_info!("insns pool initialized.");
