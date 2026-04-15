@@ -12,6 +12,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -19,12 +21,12 @@ jobs:
         toolchain: stable
         target: aarch64-linux-android,armv7-linux-androideabi
     - uses: nttld/setup-ndk@v1
+      id: setup-ndk
       with:
         ndk-version: r25c
         add-to-path: false
     - name: Build aarch64
       run: |
-        export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
         export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
         export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
         export CC_aarch64_linux_android=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
@@ -32,7 +34,6 @@ jobs:
         cargo build --release --target aarch64-linux-android
     - name: Build armv7
       run: |
-        export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
         export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
         export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
         export CC_armv7_linux_androideabi=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
