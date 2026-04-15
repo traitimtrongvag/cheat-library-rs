@@ -1,4 +1,4 @@
-name: Build Android
+name: Build Android (aarch64 only)
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: stable
-        target: aarch64-linux-android,armv7-linux-androideabi
+        target: aarch64-linux-android
     - uses: nttld/setup-ndk@v1
       id: setup-ndk
       with:
@@ -32,20 +32,10 @@ jobs:
         export AR_aarch64_linux_android=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
         export RUSTFLAGS="-A warnings"
         cargo build --release --target aarch64-linux-android
-    - name: Build armv7
-      run: |
-        export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
-        export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
-        export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
-        export CC_armv7_linux_androideabi=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
-        export AR_armv7_linux_androideabi=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
-        export RUSTFLAGS="-A warnings"
-        cargo build --release --target armv7-linux-androideabi
     - name: Prepare output
       run: |
         mkdir -p .github/output
         cp target/aarch64-linux-android/release/cheat-library-rs .github/output/cheat-library-rs.aarch64 || true
-        cp target/armv7-linux-androideabi/release/cheat-library-rs .github/output/cheat-library-rs.armv7 || true
     - uses: actions/upload-artifact@v4
       with:
         name: android-binaries
