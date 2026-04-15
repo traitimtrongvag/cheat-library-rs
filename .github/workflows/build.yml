@@ -1,0 +1,45 @@
+name: Build Android
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        target: aarch64-linux-android,armv7-linux-androideabi
+    - uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r25c
+        add-to-path: false
+    - name: Build aarch64
+      run: |
+        export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
+        export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+        export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
+        cargo build --release --target aarch64-linux-android
+    - name: Build armv7
+      run: |
+        export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
+        export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+        export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
+        cargo build --release --target armv7-linux-androideabi
+    - name: Prepare output
+      run: |
+        mkdir -p .github/output
+        cp target/aarch64-linux-android/release/cheat-library-rs .github/output/cheat-library-rs.aarch64 || true
+        cp target/armv7-linux-androideabi/release/cheat-library-rs .github/output/cheat-library-rs.armv7 || true
+    - uses: actions/upload-artifact@v4
+      with:
+        name: android-binaries
+        path: .github/output/
