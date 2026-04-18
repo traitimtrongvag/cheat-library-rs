@@ -1,6 +1,6 @@
 use jni::{JNIEnv, JavaVM};
 use jni::objects::{JObject, JValue, GlobalRef};
-use std::sync::{OnceLock, Mutex};
+use std::sync::OnceLock;
 
 static JVM: OnceLock<JavaVM> = OnceLock::new();
 
@@ -8,41 +8,20 @@ pub fn init_jvm(vm: &JavaVM) {
     let _ = JVM.set(unsafe { JavaVM::from_raw(vm.get_java_vm_pointer()).unwrap() });
 }
 
-struct EnvHolder {
-    guard: Option<jni::AttachGuard<'static>>,
-}
-
-thread_local! {
-    static ENV_HOLDER: Mutex<EnvHolder> = Mutex::new(EnvHolder { guard: None });
-}
-
+// Attaches the current thread and returns an env valid for this call frame.
+// The AttachGuard is intentionally leaked via Box::leak so the env pointer
+// remains valid. This is acceptable for long-lived native threads on Android
+// where thread lifetime == process lifetime. Do not use on short-lived threads.
 pub fn get_env() -> Option<JNIEnv<'static>> {
     let jvm = JVM.get()?;
-    
+
     match jvm.get_env() {
-        Ok(env) => {
-            Some(unsafe { std::mem::transmute(env) })
-        }
+        Ok(env) => Some(unsafe { std::mem::transmute(env) }),
         Err(_) => {
-            match jvm.attach_current_thread() {
-                Ok(guard) => {
-                    let guard_static: jni::AttachGuard<'static> = unsafe { std::mem::transmute(guard) };
-                    
-                    ENV_HOLDER.with(|holder| {
-                        let mut h = holder.lock().unwrap();
-                        h.guard = Some(guard_static);
-                    });
-                    
-                    match jvm.get_env() {
-                        Ok(env) => Some(unsafe { std::mem::transmute(env) }),
-                        Err(e) => {
-                            log::error!("Failed to get env after attach: {}", e);
-                            None
-                        }
-                    }
-                }
+            match jvm.attach_current_thread_permanently() {
+                Ok(env) => Some(unsafe { std::mem::transmute(env) }),
                 Err(e) => {
-                    log::error!("Error attaching thread: {}", e);
+                    log::error!("Failed to attach thread to JVM: {}", e);
                     None
                 }
             }
