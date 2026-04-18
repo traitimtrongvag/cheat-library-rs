@@ -1,11 +1,15 @@
-use std::os::raw::c_char;
+use std::os::raw::c_void;
 
 #[repr(C)]
 pub struct MonoString {
-    klass: *mut std::ffi::c_void,
-    monitor: *mut std::ffi::c_void,
+    klass: *mut c_void,
+    monitor: *mut c_void,
     length: i32,
-    chars: [c_char; 1],
+    // UTF-16 chars follow immediately after length in memory.
+    // Using u16 directly would misalign the struct on some ABIs, so we keep
+    // the flexible-array-member pattern but with u8 to avoid signed/unsigned
+    // confusion when casting.
+    chars: [u8; 1],
 }
 
 impl MonoString {
@@ -31,12 +35,11 @@ impl MonoString {
     pub fn set_mono_string(&mut self, s: &str) {
         self.length = s.len() as i32;
         let utf16: Vec<u16> = s.encode_utf16().collect();
-        
+
         unsafe {
-            let chars_ptr = self.get_chars_mut();
             std::ptr::copy_nonoverlapping(
                 utf16.as_ptr(),
-                chars_ptr,
+                self.get_chars_mut(),
                 self.length as usize,
             );
         }
