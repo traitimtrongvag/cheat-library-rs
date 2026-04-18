@@ -6,11 +6,11 @@ impl StrEnc {
     pub fn new(str_data: &[u8], key: &[u8]) -> Self {
         let len = str_data.len().min(key.len());
         let mut data = Vec::with_capacity(len);
-        
+
         for i in 0..len {
             data.push(str_data[i] ^ key[i]);
         }
-        
+
         StrEnc { data }
     }
 
@@ -22,7 +22,8 @@ impl StrEnc {
         std::str::from_utf8(&self.data)
     }
 
-    pub fn to_string(&self) -> String {
+    // Named decode() to avoid shadowing ToString::to_string from std
+    pub fn decode(&self) -> String {
         String::from_utf8_lossy(&self.data).to_string()
     }
 }
