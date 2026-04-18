@@ -36,23 +36,15 @@ pub fn to_hex(data: &[u8]) -> String {
 }
 
 pub fn from_hex(hex: &str) -> Vec<u8> {
-    let mut result = Vec::with_capacity(hex.len() / 2);
-
     let bytes = hex.as_bytes();
+    let mut result = Vec::with_capacity(hex.len() / 2);
     let mut i = 0;
 
-    while i < bytes.len() {
-        if i + 1 >= bytes.len() {
-            break;
-        }
-
-        let h = bytes[i] as char;
-        let l = bytes[i + 1] as char;
-
-        let byte_str = format!("{}{}", h, l);
-        let value = u8::from_str_radix(&byte_str, 16).unwrap_or(0);
-
-        result.push(value);
+    while i + 1 < bytes.len() {
+        // Parse two hex chars directly without a heap allocation per pair
+        let hi = (bytes[i] as char).to_digit(16).unwrap_or(0) as u8;
+        let lo = (bytes[i + 1] as char).to_digit(16).unwrap_or(0) as u8;
+        result.push((hi << 4) | lo);
         i += 2;
     }
 
