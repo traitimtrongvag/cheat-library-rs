@@ -72,17 +72,22 @@ pub fn hook(target: *mut std::ffi::c_void, replace: *mut std::ffi::c_void, backu
 }
 
 pub fn read(addr: *const std::ffi::c_void, buffer: &mut [u8]) -> bool {
-    unsafe {
-        std::ptr::copy_nonoverlapping(addr as *const u8, buffer.as_mut_ptr(), buffer.len());
-        true
-    }
+    // Delegates to mem_read which validates null, checks length,
+    // and handles page protection — unlike the old raw copy_nonoverlapping
+    // that silently SIGSEGVd and still returned true.
+    crate::includes::kittymemory::mem_read(
+        buffer.as_mut_ptr() as *mut core::ffi::c_void,
+        addr,
+        buffer.len(),
+    )
 }
 
 pub fn write(addr: *mut std::ffi::c_void, buffer: &[u8]) -> bool {
-    unsafe {
-        std::ptr::copy_nonoverlapping(buffer.as_ptr(), addr as *mut u8, buffer.len());
-        true
-    }
+    crate::includes::kittymemory::mem_write(
+        addr,
+        buffer.as_ptr() as *const core::ffi::c_void,
+        buffer.len(),
+    )
 }
 
 pub fn read_addr(addr: *const std::ffi::c_void, buffer: &mut [u8]) -> bool {
@@ -234,57 +239,43 @@ pub fn find_pattern(lib: &str, pattern: &str) -> usize {
     if start == 0 {
         return 0;
     }
-    
+
     let end = get_end_address(lib);
     if end == 0 {
         return 0;
     }
 
-    let pattern_bytes = pattern.as_bytes();
-    let mut cur_pat = 0;
-    let mut first_match = 0;
+    // Parse the pattern string into (byte, is_wildcard) pairs up front
+    // so the hot scan loop doesn't re-parse on every byte.
+    let tokens: Vec<(u8, bool)> = pattern
+        .split_whitespace()
+        .map(|token| {
+            if token == "?" || token == "??" {
+                (0u8, true)
+            } else {
+                let val = u8::from_str_radix(token, 16).unwrap_or(0);
+                (val, false)
+            }
+        })
+        .collect();
 
-    for p_cur in start..end {
-        unsafe {
-            let cur_byte = *(p_cur as *const u8);
-            
-            if pattern_bytes[cur_pat] == b'?' || 
-               (cur_pat + 1 < pattern_bytes.len() && 
-                pattern_bytes[cur_pat] == b'?' && 
-                pattern_bytes[cur_pat + 1] == b'?') ||
-               cur_byte == get_byte(&pattern_bytes[cur_pat..])
-            {
-                if first_match == 0 {
-                    first_match = p_cur;
+    if tokens.is_empty() {
+        return 0;
+    }
+
+    'outer: for base in start..end {
+        if base + tokens.len() > end {
+            break;
+        }
+        for (i, &(byte, wildcard)) in tokens.iter().enumerate() {
+            if !wildcard {
+                let mem_byte = unsafe { *(( base + i) as *const u8) };
+                if mem_byte != byte {
+                    continue 'outer;
                 }
-                
-                if pattern_bytes[cur_pat] == b'?' && 
-                   cur_pat + 1 < pattern_bytes.len() && 
-                   pattern_bytes[cur_pat + 1] == b'?'
-                {
-                    cur_pat += 2;
-                } else if pattern_bytes[cur_pat] == b'?' {
-                    cur_pat += 1;
-                } else {
-                    cur_pat += 2;
-                }
-                
-                if cur_pat >= pattern_bytes.len() {
-                    return first_match;
-                }
-                
-                if cur_pat < pattern_bytes.len() && pattern_bytes[cur_pat] == b' ' {
-                    cur_pat += 1;
-                }
-                
-                if cur_pat >= pattern_bytes.len() {
-                    return first_match;
-                }
-            } else if first_match != 0 {
-                cur_pat = 0;
-                first_match = 0;
             }
         }
+        return base;
     }
 
     0
